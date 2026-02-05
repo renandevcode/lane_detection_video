@@ -41,6 +41,7 @@ def average_slope_intercept(image,lines):
     left_fit=[]
     right_fit=[]
 
+
     if lines is None:
         return np.array([
             make_cordinates(image, prev_left_fit_average),
@@ -56,6 +57,8 @@ def average_slope_intercept(image,lines):
             left_fit.append((slope,interception))
         else:
             right_fit.append((slope,interception))
+
+
 
     if len(left_fit) == 0 or len(right_fit) == 0:
         return np.array([
@@ -85,7 +88,6 @@ def display_lines(image,lines):
     if lines is not None:
         for x1,y1,x2,y2 in lines :
             cv2.line(line_image,(x1,y1),(x2,y2),(255,0,255),12)
-
     return line_image
 
 cap=cv2.VideoCapture('test_video.mp4')
@@ -98,15 +100,30 @@ while True:
     cropped_image=region_of_interest(canny_image)
 
     lines=cv2.HoughLinesP(cropped_image,2,np.pi/180,100,np.array([]),minLineLength=40,maxLineGap=5)
+
     averaged_lines=average_slope_intercept(frame,lines)
+
+
 
     line_image=display_lines(frame,averaged_lines)
     combo_image=cv2.addWeighted(frame,0.9,line_image,1,1)
 
+    #desenho de faixa central ( solução inicial )
+    x_left = averaged_lines[0][0]
+    x_right = averaged_lines[1][0]
+
+    x_left_2 = averaged_lines[0][2]
+    x_rigth_2 = averaged_lines[1][2]
+
+    x_center = int((x_right + x_left) / 2)
+    x_center_top = int((x_rigth_2 + x_left_2) / 2)
+    y = int(combo_image.shape[0])
+    cv2.line(combo_image,(x_center,y),(x_center_top,int(y*3/5)),(255,255,0),12)
+
     cv2.imshow('result',combo_image)
     cv2.imshow('canny image',canny_image)
     cv2.imshow('roi',cropped_image)
-    if cv2.waitKey(1) & 0xFF==27 :
+    if cv2.waitKey(1) & 0xFF==27 : # aperte a tecla ESC para fechar abas
         break
 
 cv2.destroyWindow()
